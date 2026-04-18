@@ -1,0 +1,225 @@
+﻿using Modding;
+using ModIO;
+using MultithreadCoroutines;
+using Newtonsoft.Json;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading;
+using UnityEngine;
+using UnityEngine.Networking;
+
+namespace DriverAgentBlockMod
+{
+    public class Chat:MonoBehaviour
+    {
+        // ==================== UI 状态变量 ====================
+        private bool showWindow = true;
+        private Vector2 scrollPosition;
+
+        // 配置项
+        private string apiKey = "";
+        private string apiUrl = "https://api.openai.com/v1/chat/completions";
+        private string modelName = "gpt-3.5-turbo";
+
+        // 对话项
+        private string userInput = "";
+        private List<string> chatHistory = new List<string>();
+        private bool isWaitingForResponse = false;
+
+        // 配置文件路径
+        private string configFilePath;
+
+        // ==================== Mod 生命周期 ====================
+        //public override void OnLoad()
+        //{
+        //    // 将配置保存在 Mod 文件夹下
+        //    configFilePath = Path.Combine(ModIO.ModsDirectory, "AIBrainConfig.json");
+        //    LoadConfig();
+
+        //    chatHistory.Add("系统: AI大脑已启动，请先配置API信息。");
+        //}
+
+        // ==================== UI 绘制 (每帧调用) ====================
+         
+        
+        
+        void OnGUI()
+        {
+            // 右上角的开关按钮
+            if (GUI.Button(new Rect(Screen.width - 120, 10, 110, 30), "AI 大脑面板"))
+            {
+                showWindow = !showWindow;
+            }
+
+            if (!showWindow) return;
+
+            // 主窗口
+            float windowWidth = 400;
+            float windowHeight = 500;
+            float windowX = Screen.width - windowWidth - 10;
+            float windowY = 50;
+
+            GUI.Window(9999, new Rect(windowX, windowY, windowWidth, windowHeight), DrawMainWindow, "AI 驾驶员大脑");
+        }
+
+        private void DrawMainWindow(int windowId)
+        {
+            // ---------- 1. 配置区 ----------
+            GUILayout.Label("【API 配置】", GUI.skin.box);
+
+            GUILayout.Label("API 地址:");
+            apiUrl = GUILayout.TextField(apiUrl);
+
+            GUILayout.Label("API Key:");
+            apiKey = GUILayout.PasswordField(apiKey, '*'); // 密码模式显示
+
+            GUILayout.Label("模型名称:");
+            modelName = GUILayout.TextField(modelName);
+
+            if (GUILayout.Button("保存配置"))
+            {
+                SaveConfig();
+                chatHistory.Add("系统: 配置已保存。");
+            }
+
+            GUILayout.Space(10);
+
+            // ---------- 2. 对话显示区 (滚动列表) ----------
+            GUILayout.Label("【对话记录】", GUI.skin.box);
+
+            scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.Height(300));
+            foreach (var msg in chatHistory)
+            {
+                // 简单的文本换行显示
+                GUILayout.Label(msg, GUILayout.Width(380));
+            }
+            GUILayout.EndScrollView();
+
+            GUILayout.Space(10);
+
+            // ---------- 3. 输入与发送区 ----------
+            GUILayout.BeginHorizontal();
+            userInput = GUILayout.TextField(userInput);
+
+            // 如果正在请求，禁用按钮
+            bool wasEnabled = GUI.enabled;
+            GUI.enabled = !isWaitingForResponse;
+
+            if (GUILayout.Button("发送", GUILayout.Width(60)))
+            {
+                if (!string.IsNullOrEmpty(userInput.Trim()))
+                {
+                    SendToAI(userInput.Trim());
+                    userInput = ""; // 清空输入框
+                }
+            }
+            GUI.enabled = wasEnabled;
+            GUILayout.EndHorizontal();
+
+            if (isWaitingForResponse)
+            {
+                GUILayout.Label("AI 正在思考中...");
+            }
+
+            GUI.DragWindow(); // 允许拖拽窗口
+        }
+
+        // ==================== 网络通信核心 ====================
+        // 1. 彻底移除 async/await，改为普通方法
+        private void SendToAI(string message)
+        {
+            chatHistory.Add("玩家: " + message);
+            isWaitingForResponse = true;
+
+            try
+            {
+                // 2. 使用你反编译出来的 ModIO 异步方法（事件回调模式，符合 .NET 3.5）
+                Uri targetUri = new Uri(apiUrl);
+                Modding.ModIO.DownloadStringAsync(targetUri, OnDownloadComplete);
+            }
+            catch (Exception ex)
+            {
+                chatHistory.Add("系统异常: " + ex.Message);
+                isWaitingForResponse = false;
+            }
+        }
+
+        // 3. 必须单独写一个回调方法，不能用 Lambda 表达式 (=> {})，因为老版本 C# 支持不好
+        private void OnDownloadComplete(object sender, DownloadStringCompletedEventArgs e)
+        {
+            // 4. 检查错误（替代原来的 isHttpError）
+            if (e.Error != null)
+            {
+                chatHistory.Add("系统网络错误: " + e.Error.Message);
+                isWaitingForResponse = false;
+                return;
+            }
+
+            string responseJson = e.Result;
+
+            try
+            {
+                // 5. JSON 解析（假设你仍然使用 Newtonsoft.Json）
+                dynamic apiResponse = JsonConvert.DeserializeObject(responseJson);
+
+                // 提取回复内容
+                string aiReply = apiResponse.choices[0].message.content;
+
+                // 6. 彻底移除 [^1] 尾部索引语法，改用 Count - 1
+                int lastIndex = chatHistory.Count - 1;
+
+                // 7. 移除 Task.Delay 和 Task.Yield
+                chatHistory[lastIndex] = "AI: " + aiReply;
+            }
+            catch (Exception ex)
+            {
+                chatHistory.Add("JSON解析错误: " + ex.Message);
+            }
+            finally
+            {
+                isWaitingForResponse = false;
+            }
+        }
+
+        // ==================== 本地配置读写 ====================
+        private void SaveConfig()
+        {
+            try
+            {
+                var config = new { ApiUrl = apiUrl, ApiKey = apiKey, ModelName = modelName };
+                File.WriteAllText(configFilePath, JsonConvert.SerializeObject(config, Formatting.Indented));
+            }
+            catch (Exception ex)
+            {
+                chatHistory.Add($"保存配置失败: {ex.Message}");
+            }
+        }
+
+        private void LoadConfig()
+        {
+            try
+            {
+                if (File.Exists(configFilePath))
+                {
+                    string json = File.ReadAllText(configFilePath);
+                    dynamic config = JsonConvert.DeserializeObject(json);
+                    apiUrl = config.ApiUrl;
+                    apiKey = config.ApiKey;
+                    modelName = config.ModelName;
+                    chatHistory.Add("系统: 已加载本地配置。");
+                }
+            }
+            catch (Exception ex)
+            {
+                chatHistory.Add($"加载配置失败，使用默认值: {ex.Message}");
+            }
+        }
+    }
+
+}
+
