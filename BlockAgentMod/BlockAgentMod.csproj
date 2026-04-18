@@ -7,8 +7,8 @@
     <ProjectGuid>{8E26645F-3BD0-4292-964A-164013DDE539}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DriverAgentBlockMod</RootNamespace>
-    <AssemblyName>DriverAgentBlockMod</AssemblyName>
+    <RootNamespace>BlockAgentMod</RootNamespace>
+    <AssemblyName>BlockAgentMod</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -36,7 +36,11 @@
     <Reference Include="Assembly-UnityScript, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>F:\Games\Besiege\v1.75\Besiege_Data\Managed\Newtonsoft.Json.dll</HintPath>
+      <HintPath>F:\Games\Besiege\v1.77\Besiege_Data\Managed\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="PluginManager, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>F:\Games\Besiege\v1.77\PluginManager.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -69,9 +73,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y "$(TargetPath)" "%25BESIEGE_LOCATION%25\Besiege_Data\Mods\$(ProjectName)\$(TargetName).dll"
-xcopy /Y /E "$(ProjectDir)Resources\*" "%25BESIEGE_LOCATION%25\Besiege_Data\Mods\$(ProjectName)\Resources\"
-xcopy /Y "$(ProjectDir)XML\*" "%25BESIEGE_LOCATION%25\Besiege_Data\Mods\$(ProjectName)\"
-xcopy /Y /E "$(ProjectDir)AI-Prototype\*" "%25BESIEGE_LOCATION%25\Besiege_Data\Mods\$(ProjectName)\AI-Prototype\"</PostBuildEvent>
+    <PostBuildEvent>xcopy /Y "$(TargetPath)" "%25BESIEGE_LOCATION%25\Plugins\$(ProjectName)\$(TargetName).dll"
+</PostBuildEvent>
   </PropertyGroup>
 </Project>

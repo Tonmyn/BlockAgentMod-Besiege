@@ -4,22 +4,45 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using Modding;
+using PluginManager.Plugin;
 
 namespace DriverAgentBlockMod
 {
-    public class Mod : ModEntryPoint
+    [OnGameInit]
+    public class Mod : MonoBehaviour
     {
-        public static GameObject mod;
+        public GameObject mod;
 
-        public override void OnLoad()
+        public Mod ()
+            {
+            }
+
+
+        public void Start()
         {
 
-            mod = new GameObject("Driver Agent Block Mod");
+            mod = SingleInstance<BlockAgentMod>.Instance.gameObject;
 
             UnityEngine.Object .DontDestroyOnLoad(mod);
-            mod.AddComponent<Chat>();
+            //BlockAgentMod.AddComponent<Chat>();
 
         }
 
     }
+
+    public class BlockAgentMod : SingleInstance<BlockAgentMod>
+    {
+        public override string Name
+        {
+            get
+            {
+                return "Block Agent Mod - UPM Edition";
+            }
+        }
+
+
+
+    }
+
+
 }
