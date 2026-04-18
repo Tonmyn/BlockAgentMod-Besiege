@@ -6,7 +6,7 @@ using UnityEngine;
 using Newtonsoft.Json;
 
 
-namespace DriverAgentBlockMod
+namespace BlockAgentMod
 {
     // 为了兼容 Unity 5.7，我们尽量用基础类型
     public class MiniMLP

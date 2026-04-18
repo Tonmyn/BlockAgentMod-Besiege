@@ -6,17 +6,12 @@ using UnityEngine;
 using Modding;
 using PluginManager.Plugin;
 
-namespace DriverAgentBlockMod
+namespace BlockAgentMod
 {
     [OnGameInit]
     public class Mod : MonoBehaviour
     {
         public GameObject mod;
-
-        public Mod ()
-            {
-            }
-
 
         public void Start()
         {

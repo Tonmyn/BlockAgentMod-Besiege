@@ -7,7 +7,7 @@ using System.IO;
 using System.Text;
 using UnityEngine;
 
-namespace DriverAgentBlockMod
+namespace BlockAgentMod
 {
     public class Chat : MonoBehaviour
     {

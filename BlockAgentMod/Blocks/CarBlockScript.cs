@@ -8,7 +8,7 @@ using UnityEngine;
 using ModIO;
 using System.Collections;
 
-namespace DriverAgentBlockMod
+namespace BlockAgentMod
 {
     class CarBlockScript : BlockScript
     {
