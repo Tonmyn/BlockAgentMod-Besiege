@@ -52,7 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Blocks\CarBlockScript.cs" />
-    <Compile Include="Chat.cs" />
+    <Compile Include="ChatUI.cs" />
     <Compile Include="MiniMLP.cs" />
     <Compile Include="Mod.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -5,6 +5,7 @@ using System.Text;
 using UnityEngine;
 using Modding;
 using PluginManager.Plugin;
+using System.IO;
 
 namespace BlockAgentMod
 {
@@ -18,8 +19,10 @@ namespace BlockAgentMod
 
             mod = SingleInstance<BlockAgentMod>.Instance.gameObject;
 
+          
+
             UnityEngine.Object .DontDestroyOnLoad(mod);
-            //BlockAgentMod.AddComponent<Chat>();
+            mod.AddComponent<ChatUI>();
 
         }
 
@@ -35,8 +38,9 @@ namespace BlockAgentMod
             }
         }
 
+        public string ModFilePath { get {return System.Reflection.Assembly.GetExecutingAssembly().Location; } }
 
-
+        public string ModDirPath { get { return Path.Combine(Environment.CurrentDirectory, "Plugins"); } }
     }
 
 
